@@ -1,0 +1,50 @@
+body {
+  margin: 0;
+  background: #f5f7fb;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+textarea {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  resize: vertical;
+}
+
+button {
+  margin-top: 15px;
+  padding: 12px 25px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.answer {
+  background: #eef5ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  white-space: pre-wrap;
+}
+
+.source {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f4f4f4;
+  border-radius: 6px;
+  font-size: 14px;
+}
