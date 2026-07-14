@@ -290,29 +290,21 @@ http://localhost:5173
 
 # 📸 Screenshots
 
-## Home Page
+## 🏠 Home Page
 
-> Add screenshot here
-
----
-
-## Chat Interface
-
-> Add screenshot here
+![Home Page](Screenshots/Home%20Page.png)
 
 ---
 
-## Source Viewer
+## 💬 Chat Conversation
 
-> Add screenshot here
-
----
-
-## API Documentation
-
-> Add screenshot here
+![Chat Conversation](Screenshots/Chat%20Conversion.png)
 
 ---
+
+## 📑 Source Cards
+
+![Source Cards](Screenshots/Sources%20Card.png)
 
 # 🛠️ Tech Stack
 
