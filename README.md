@@ -409,9 +409,9 @@ This project is licensed under the MIT License.
 B.Tech Dual Degree | Civil Engineering  
 Indian Institute of Technology Kharagpur
 
-GitHub: https://github.com/YOUR_USERNAME
+GitHub: (https://github.com/Ranvirkgpian?tab=repositories)
 
-LinkedIn: https://linkedin.com/in/YOUR_PROFILE
+LinkedIn: (https://www.linkedin.com/in/ranvir-kumar-862b4a284/)
 
 ---
 
