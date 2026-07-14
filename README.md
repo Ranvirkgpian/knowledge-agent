@@ -1,227 +1,426 @@
-# Meraki SD-WAN Knowledge Agent
+# 🚀 Meraki SD-WAN Knowledge Agent
 
-Offline **RAG** assistant for Cisco Meraki SD-WAN fulfillment knowledge.  
-Local embeddings + ChromaDB + Qwen, with a ChatGPT-style UI, confidence-scored sources, document upload, and multi-turn memory.
+> An **offline AI-powered Retrieval-Augmented Generation (RAG) Knowledge Assistant** for Cisco Meraki SD-WAN documentation using **FastAPI, React, ChromaDB, Qwen2.5-3B, and BAAI Embeddings**.
 
-![Stack](https://img.shields.io/badge/FastAPI-0.115+-009688) ![React](https://img.shields.io/badge/React-19-61dafb) ![ChromaDB](https://img.shields.io/badge/ChromaDB-vector-orange) ![Qwen](https://img.shields.io/badge/Qwen2.5-3B-purple)
-
----
-
-## Features
-
-| Feature | Description |
-|--------|-------------|
-| **Chat UI** | Conversation layout with streaming answers |
-| **Hybrid search** | Dense (Chroma) + BM25 fused with Reciprocal Rank Fusion |
-| **Grounded answers** | Strict prompt — refuses when context is insufficient |
-| **Source cards** | Collapsed cards with chunk #, confidence, expand to full text |
-| **Confidence** | 0–100 score (green / yellow / orange / red) |
-| **Answer meta** | Retrieved chunks, embedding model, LLM, generation time |
-| **Upload** | Staged pipeline: upload → read → chunk → embed → save |
-| **Knowledge base** | Multi-doc panel with delete + re-index |
-| **Memory** | Follow-ups like “what happens after that?” use chat history |
-| **Smart chunking** | Preserves headings and numbered steps |
-| **Dark mode** | Theme toggle with local preference |
-| **Docker** | Compose stack for backend + nginx frontend |
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB)
+![ChromaDB](https://img.shields.io/badge/VectorDB-ChromaDB-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Status](https://img.shields.io/badge/Status-Offline%20AI-success)
 
 ---
 
-## Architecture
+# 📖 Overview
 
-```mermaid
-flowchart LR
-  UI[React Chat UI] -->|SSE /chat/stream| API[FastAPI]
-  UI -->|multipart| API
-  API --> RAG[RAG Engine]
-  RAG --> EMB[BGE Embeddings]
-  RAG --> LLM[Qwen 2.5 3B]
-  RAG --> VDB[(ChromaDB)]
-  Upload[PDF DOCX TXT] --> IDX[Indexer]
-  IDX --> EMB
-  IDX --> VDB
-```
+Meraki SD-WAN Knowledge Agent is an **offline enterprise AI assistant** that answers questions from Cisco Meraki SD-WAN knowledge documents using **Retrieval-Augmented Generation (RAG)**.
 
-```
-backend/
-├── app.py              # FastAPI entry + lifespan
-├── config.py           # env-driven settings
-├── schemas.py
-├── api/
-│   ├── routes.py       # /chat, /chat/stream, /documents/*
-│   └── deps.py
-└── services/
-    ├── rag.py
-    ├── vector_db.py
-    ├── embeddings.py
-    ├── parser.py
-    ├── chunker.py
-    └── indexer.py
+Unlike traditional chatbots, every answer is generated from the indexed documents and includes the supporting source chunks, making responses trustworthy and explainable.
+
+---
+
+# ✨ Features
+
+- 🤖 Fully Offline AI Assistant
+- 📚 Multi-document Knowledge Base
+- 🔍 Hybrid Search (Dense Embeddings + BM25 + RRF)
+- 🧠 Local Qwen2.5-3B-Instruct LLM
+- 📄 DOCX Knowledge Base Support
+- ⚡ ChromaDB Vector Database
+- 📑 Expandable Source Citations
+- 📊 Confidence Score for Retrieved Chunks
+- 🎨 Modern React + Tailwind UI
+- 🚀 FastAPI REST API
+- 💻 GPU Accelerated (CUDA Supported)
+
+---
+
+# 🏗️ Architecture
+
+```text
+                ┌─────────────────────────┐
+                │      React Frontend     │
+                └────────────┬────────────┘
+                             │
+                       REST API
+                             │
+                ┌────────────▼────────────┐
+                │      FastAPI Backend    │
+                └────────────┬────────────┘
+                             │
+                ┌────────────▼────────────┐
+                │     Hybrid Retrieval    │
+                │ Dense + BM25 + RRF      │
+                └────────────┬────────────┘
+                             │
+              ┌──────────────▼──────────────┐
+              │        ChromaDB             │
+              │      Vector Database        │
+              └──────────────┬──────────────┘
+                             │
+              ┌──────────────▼──────────────┐
+              │ BAAI/bge-small-en-v1.5      │
+              │     Embedding Model         │
+              └──────────────┬──────────────┘
+                             │
+              ┌──────────────▼──────────────┐
+              │   Qwen2.5-3B-Instruct LLM   │
+              └─────────────────────────────┘
 ```
 
 ---
 
-## Quick start (local)
+# 📂 Project Structure
 
-### Prerequisites
+```text
+knowledge-agent/
+│
+├── backend/
+│   ├── app.py
+│   ├── rag.py
+│   ├── parser.py
+│   ├── chunker.py
+│   ├── embeddings.py
+│   ├── vector_db.py
+│   ├── config.py
+│   ├── schemas.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+│
+├── data/
+│   └── Sample_Document.docx
+│
+├── scripts/
+│   └── build_vector_db.py
+│
+├── README.md
+├── requirements.txt
+└── .gitignore
+```
+
+---
+
+# 🛠️ Prerequisites
 
 - Python **3.11+**
-- Node **20+**
-- Local **Qwen2.5-3B-Instruct** weights (or set `LLM_PATH`)
-- GPU recommended (CPU works, slower)
+- Node.js **20+**
+- Git
+- NVIDIA GPU (Recommended)
+- CUDA 12.8 (Optional but recommended)
 
-### 1. Backend
+---
 
-```powershell
-cd D:\Projects\knowledge-agent
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+# 🚀 Installation
 
-copy .env.example .env
-# Edit LLM_PATH in .env to your model folder
+## 1. Clone Repository
 
-# Index the seed Meraki document (first time / after chunker changes)
-python scripts\reindex.py
+```bash
+git clone https://github.com/YOUR_USERNAME/knowledge-agent.git
 
-cd backend
-uvicorn app:app --reload --host 127.0.0.1 --port 8000
+cd knowledge-agent
 ```
 
-### 2. Frontend
+---
+
+## 2. Create Virtual Environment
+
+Windows
 
 ```powershell
+python -m venv venv
+
+.\venv\Scripts\Activate.ps1
+```
+
+Linux / macOS
+
+```bash
+python3 -m venv venv
+
+source venv/bin/activate
+```
+
+---
+
+## 3. Install Backend Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 4. Install Frontend
+
+```bash
 cd frontend
+
 npm install
+```
+
+---
+
+# 🤖 Download AI Models
+
+GitHub cannot store large AI models.
+
+Download them separately.
+
+## Qwen2.5-3B-Instruct
+
+```bash
+hf download Qwen/Qwen2.5-3B-Instruct --local-dir models/Qwen2.5-3B-Instruct
+```
+
+## Embedding Model
+
+```bash
+hf download BAAI/bge-small-en-v1.5 --local-dir models/bge-small-en-v1.5
+```
+
+---
+
+# ⚙️ Configure Model Paths
+
+Edit
+
+```text
+backend/config.py
+```
+
+Example
+
+```python
+MODEL_PATH = r"models/Qwen2.5-3B-Instruct"
+
+EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
+```
+
+---
+
+# 📄 Add Knowledge Documents
+
+Place your documents inside
+
+```text
+data/
+```
+
+Example
+
+```text
+data/
+
+Meraki_SDWAN_Fulfillment_Knowledge_Doc.docx
+```
+
+---
+
+# 🧠 Build the Vector Database
+
+Run
+
+```bash
+python scripts/build_vector_db.py
+```
+
+This will
+
+- Read the document
+- Split it into chunks
+- Generate embeddings
+- Store vectors in ChromaDB
+
+---
+
+# ▶️ Start Backend
+
+```bash
+cd backend
+
+uvicorn app:app --reload
+```
+
+Backend API
+
+```
+http://127.0.0.1:8000
+```
+
+Swagger UI
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# 🌐 Start Frontend
+
+```bash
+cd frontend
+
 npm run dev
 ```
 
-Open **http://localhost:5173**
+Frontend
 
-### Sample questions
+```
+http://localhost:5173
+```
 
+---
+
+# 💬 Example Questions
+
+- Explain the Meraki SD-WAN fulfillment flow.
 - What happens after BPMS triggers Meraki API?
-- What happens after that? *(follow-up — uses memory)*
-- How is order status updated?
+- How does TrackCPE work?
+- What is InputValidation?
+- Explain Provisioning.
+- What happens if validation fails?
+- Describe the complete order lifecycle.
 
 ---
 
-## API
+# 📸 Screenshots
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Status |
-| `POST` | `/chat` | Non-streaming chat |
-| `POST` | `/chat/stream` | SSE: `sources` → `token*` → `done` |
-| `POST` | `/documents/upload` | Multipart file upload + index (JSON) |
-| `POST` | `/documents/upload/stream` | Same pipeline as SSE stages |
-| `GET` | `/documents` | List indexed sources |
-| `DELETE` | `/documents/{source}` | Remove a document’s chunks |
-| `POST` | `/documents/{source}/reindex` | Re-chunk + re-embed from disk |
+## Home Page
 
-### Chat body
-
-```json
-{
-  "question": "What happens after that?",
-  "history": [
-    { "role": "user", "content": "What happens after BPMS triggers Meraki API?" },
-    { "role": "assistant", "content": "..." }
-  ]
-}
-```
-
-### Source object
-
-```json
-{
-  "source": "Meraki_SDWAN_Fulfillment_Knowledge_Doc.docx",
-  "chunk_index": 2,
-  "preview": "BPMS triggers the Meraki API vendor automation service via webhook...",
-  "confidence": 96,
-  "distance": 0.04,
-  "content": "full chunk text…",
-  "heading": "Vendor Automation",
-  "retrieval": "hybrid"
-}
-```
-
-**Confidence** = `max(0, min(100, int((1 - distance) * 100)))` for dense hits.
-
-**Hybrid retrieval**: dense Chroma top‑N + BM25 top‑N → Reciprocal Rank Fusion (`RRF_K=60`).
+> Add screenshot here
 
 ---
 
-## Docker
+## Chat Interface
 
-1. Copy `.env.example` → `.env` and set model host path:
-
-```env
-LLM_HOST_PATH=D:/Programe_Data/models/Qwen2.5-3B-Instruct
-LLM_PATH=/models/Qwen2.5-3B-Instruct
-```
-
-2. Run:
-
-```powershell
-docker compose up --build
-```
-
-- UI: http://localhost:3000  
-- API: http://localhost:8000  
-
-> Models are **volume-mounted**, not baked into the image (keeps images small).
+> Add screenshot here
 
 ---
 
-## Configuration
+## Source Viewer
 
-See [`.env.example`](.env.example). Important keys:
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `LLM_PATH` | host-specific | Qwen model directory |
-| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | Sentence embeddings |
-| `TOP_K` | `5` | Retrieved chunks |
-| `CHUNK_SIZE` / `CHUNK_OVERLAP` | `120` / `30` | Section packing (words) |
-| `MAX_HISTORY_TURNS` | `6` | Conversation memory depth |
-| `MAX_UPLOAD_MB` | `15` | Upload size limit |
+> Add screenshot here
 
 ---
 
-## Development notes
+## API Documentation
 
-### Reindex after chunker/parser changes
+> Add screenshot here
 
-```powershell
-python scripts\reindex.py
-# or a custom file:
-python scripts\reindex.py path\to\doc.pdf
+---
+
+# 🛠️ Tech Stack
+
+### Backend
+
+- Python
+- FastAPI
+- ChromaDB
+- PyTorch
+- HuggingFace Transformers
+- Sentence Transformers
+
+### Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- React Markdown
+- Lucide Icons
+
+### AI Models
+
+- Qwen2.5-3B-Instruct
+- BAAI/bge-small-en-v1.5
+
+### Retrieval
+
+- Dense Embeddings
+- BM25
+- Reciprocal Rank Fusion (RRF)
+
+---
+
+# 🔮 Future Improvements
+
+- Multi-document chat
+- PDF support
+- Streaming responses
+- Conversation memory
+- Authentication
+- Docker deployment
+- Dark mode
+- Keyword highlighting
+- Source navigation
+- Multi-user knowledge bases
+
+---
+
+# 🐞 Troubleshooting
+
+### AI model not found
+
+Verify the model path in
+
+```text
+backend/config.py
 ```
 
-### Unit tests (no GPU)
+---
 
-```powershell
-python backend\tests\test_chunker_unit.py
+### ChromaDB empty
+
+Rebuild the vector database
+
+```bash
+python scripts/build_vector_db.py
 ```
 
-### Design choices
+---
 
-- **Client-owned history** — stateless API, easy demos
-- **SSE streaming** — progressive UX with local transformers streamer
-- **Section-aware chunks** — better for process docs with numbered steps
-- **Multi-document Chroma** — upload without wiping the whole KB
+### Frontend cannot connect
+
+Ensure FastAPI is running
+
+```
+http://127.0.0.1:8000
+```
 
 ---
 
-## Limitations
+### CUDA not detected
 
-- Quality depends on the local 3B model and the documents you index
-- First load downloads the embedding model and loads Qwen into VRAM/RAM
-- No authentication (intended for local / portfolio demos)
-- Cosine space is set on new collections; reindex if you upgraded from an older DB layout
+Run
+
+```bash
+python -c "import torch; print(torch.cuda.is_available())"
+```
 
 ---
 
-## License
+# 📄 License
 
-Personal / portfolio project. Meraki and Cisco are trademarks of their respective owners.
+This project is licensed under the MIT License.
+
+---
+
+# 👨‍💻 Author
+
+**Ranvir Kumar**
+
+B.Tech Dual Degree | Civil Engineering  
+Indian Institute of Technology Kharagpur
+
+GitHub: https://github.com/YOUR_USERNAME
+
+LinkedIn: https://linkedin.com/in/YOUR_PROFILE
+
+---
+
+⭐ If you found this project useful, consider giving it a **Star** on GitHub!
