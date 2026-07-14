@@ -1,15 +1,13 @@
-from parser import DocumentParser
+"""Manual script: inspect document sections."""
 
-parser = DocumentParser()
+from services.parser import DocumentParser
 
-text = parser.load()
-
-print("=" * 80)
-print("DOCUMENT LOADED")
-print("=" * 80)
-
-print(text[:1500])
-
-print("\n")
-print("=" * 80)
-print("Characters :", len(text))
+parsed = DocumentParser().parse()
+print("Source:", parsed.source)
+print("Sections:", len(parsed.sections))
+print("Chars:", len(parsed.text))
+print()
+for i, sec in enumerate(parsed.sections, 1):
+    print(f"--- Section {i} | heading={sec.heading!r} ---")
+    print(sec.text[:300])
+    print()

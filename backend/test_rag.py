@@ -1,41 +1,37 @@
-from rag import RAGEngine
+"""Manual end-to-end RAG smoke test (loads Qwen — slow / GPU)."""
+
+from schemas import HistoryMessage
+from services.rag import RAGEngine
 
 rag = RAGEngine()
 
 question = "What happens after BPMS triggers Meraki API?"
-
-answer, results = rag.ask(question)
-
-print()
+answer, sources, meta = rag.ask(question)
 
 print("=" * 80)
-
 print("QUESTION")
-
-print("=" * 80)
-
 print(question)
-
 print()
-
-print("=" * 80)
-
 print("ANSWER")
-
-print("=" * 80)
-
 print(answer)
-
 print()
-
-print("=" * 80)
-
+print("META", meta.model_dump())
+print()
 print("SOURCES")
+for s in sources:
+    print(
+        f"  [{s.confidence}%][{s.retrieval}] {s.source} "
+        f"chunk#{s.chunk_index}: {s.preview[:100]}..."
+    )
 
+follow = "What happens after that?"
+history = [
+    HistoryMessage(role="user", content=question),
+    HistoryMessage(role="assistant", content=answer),
+]
+answer2, sources2, meta2 = rag.ask(follow, history=history)
+print()
 print("=" * 80)
-
-for i, doc in enumerate(results["documents"][0], start=1):
-
-    print(f"\nSource {i}\n")
-
-    print(doc[:250])
+print("FOLLOW-UP:", follow)
+print(answer2)
+print("META", meta2.model_dump())

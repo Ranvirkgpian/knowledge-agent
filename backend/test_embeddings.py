@@ -1,17 +1,8 @@
-from embeddings import EmbeddingModel
+"""Manual script: encode a sample string."""
+
+from services.embeddings import EmbeddingModel
 
 model = EmbeddingModel()
-
-embedding = model.encode(
-    "What happens after BPMS triggers Meraki API?"
-)
-
-print()
-
-print("Embedding Length :", len(embedding))
-
-print()
-
-print("First 10 Values")
-
-print(embedding[:10])
+vec = model.encode("What happens after BPMS triggers Meraki API?")
+print("dims:", len(vec))
+print("first 5:", vec[:5])

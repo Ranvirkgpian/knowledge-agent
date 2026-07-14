@@ -1,69 +1,52 @@
-from parser import DocumentParser
-from chunker import TextChunker
-from embeddings import EmbeddingModel
-from vector_db import VectorDatabase
-from config import CHUNK_SIZE, CHUNK_OVERLAP
+"""Manual script: reindex seed doc and print hybrid search hits with confidence."""
+
+from config import CHUNK_OVERLAP, CHUNK_SIZE
+from services.chunker import TextChunker
+from services.embeddings import EmbeddingModel
+from services.hybrid_search import HybridRetriever
+from services.parser import DocumentParser
+from services.rag import distance_to_confidence
+from services.vector_db import VectorDatabase
 
 print("Loading document...")
-
-text = DocumentParser().load()
-
-chunker = TextChunker(
-    chunk_size=CHUNK_SIZE,
-    overlap=CHUNK_OVERLAP
-)
-
-chunks = chunker.split(text)
-
-print(f"Chunks : {len(chunks)}")
+parsed = DocumentParser().parse()
+chunker = TextChunker(chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
+chunks = chunker.split_with_metadata(sections=parsed.sections)
+print(f"Chunks: {len(chunks)}")
 
 embedder = EmbeddingModel()
-
-embeddings = embedder.encode_batch(chunks)
+texts = [c.text for c in chunks]
+embeddings = embedder.encode_batch(texts)
 
 db = VectorDatabase()
-
 print("Resetting collection...")
-
 db.reset()
-
-print("Saving vectors...")
-
 db.add_documents(
-    chunks,
-    embeddings
+    chunks=texts,
+    embeddings=embeddings,
+    source=parsed.source,
+    headings=[c.heading for c in chunks],
 )
 
-print()
-
-print("Vector Database Ready!")
-
-print()
+hybrid = HybridRetriever()
+hybrid.rebuild_from_store(db)
+print("Vector + BM25 ready!")
 
 query = "What happens after BPMS triggers Meraki API?"
-
-query_embedding = embedder.encode(query)
-
-results = db.search(query_embedding)
-
-print("=" * 80)
-
-print("QUESTION")
+dense = db.search(embedder.encode(query), top_k=5)
+dense_ids = (dense.get("ids") or [[]])[0]
+bm25_ids = hybrid.bm25_search(query, top_k=5)
+fused = hybrid.fuse(dense_ids, bm25_ids, top_k=5)
 
 print("=" * 80)
-
-print(query)
-
-print()
-
+print("QUESTION:", query)
+print("Dense IDs:", dense_ids[:3])
+print("BM25 IDs:", bm25_ids[:3])
 print("=" * 80)
 
-print("RESULTS")
-
-print("=" * 80)
-
-for i, doc in enumerate(results["documents"][0], start=1):
-
-    print(f"\nResult {i}\n")
-
-    print(doc[:400])
+docs_by_id = hybrid.get_by_ids([i for i, _ in fused])
+for i, (doc_id, score) in enumerate(fused, 1):
+    payload = docs_by_id.get(doc_id, {})
+    text = (payload.get("document") or "")[:120]
+    print(f"\n#{i} RRF={score:.4f} id={doc_id}")
+    print(text)

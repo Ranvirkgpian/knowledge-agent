@@ -1,30 +1,20 @@
-from parser import DocumentParser
-from chunker import TextChunker
+"""Manual script: inspect chunks from the seed document."""
 
-parser = DocumentParser()
+from config import CHUNK_OVERLAP, CHUNK_SIZE
+from services.chunker import TextChunker
+from services.parser import DocumentParser
 
-text = parser.load()
-
-from config import CHUNK_SIZE, CHUNK_OVERLAP
-
-chunker = TextChunker(
-    chunk_size=CHUNK_SIZE,
-    overlap=CHUNK_OVERLAP
-)
-
-chunks = chunker.split(text)
+parsed = DocumentParser().parse()
+chunker = TextChunker(chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
+chunks = chunker.split_with_metadata(sections=parsed.sections)
 
 print("=" * 80)
-print("TOTAL CHUNKS")
+print("TOTAL CHUNKS", len(chunks))
 print("=" * 80)
 
-print(len(chunks))
-
-print("\n")
-
-for i, chunk in enumerate(chunks, start=1):
+for c in chunks:
     print("=" * 80)
-    print(f"Chunk {i}")
+    print(f"Chunk {c.chunk_index} | heading={c.heading!r}")
     print("=" * 80)
-    print(chunk[:500])
+    print(c.text[:500])
     print()
