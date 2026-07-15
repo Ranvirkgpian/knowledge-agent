@@ -19,6 +19,26 @@ Unlike traditional chatbots, every answer is generated from the indexed document
 
 ---
 
+# 🚀 Live Project Demo
+
+> 📹 **Watch the complete project walkthrough**
+
+**🎬 Demo Video:**  
+https://drive.google.com/file/d/1KE3_zZDms5-i5iEJiev2-z4NMpRb0uRp/view?usp=sharing
+
+The video demonstrates:
+- ✅ Project overview
+- ✅ System architecture
+- ✅ Document indexing
+- ✅ Hybrid retrieval (Dense + BM25 + RRF)
+- ✅ Question answering workflow
+- ✅ Source citations & confidence scores
+- ✅ FastAPI backend
+- ✅ React frontend
+- ✅ End-to-end live demo
+
+---
+
 # ✨ Features
 
 - 🤖 Fully Offline AI Assistant
